@@ -22,7 +22,10 @@ class Net(nn.Module):
         return x
     
 class CNN_NET(nn.Module):
-    def __init__(self):
+    def __init__(self, activation = 'relu'):
+        self.activation = activation
+
+
         #https://madebyollin.github.io/convnet-calculator/ - calculor for AI
         super(CNN_NET, self).__init__()
         # 1 x 36 x 36
@@ -54,7 +57,7 @@ class CNN_NET(nn.Module):
             nn.Flatten()
         )
         # 64 x 3 x 3 = 576
-        self.classfier = nn.Sequential(
+        self.classfier_Relu = nn.Sequential(
             nn.Linear(576,256),
             nn.ReLU(),
             nn.Linear(256,128),
@@ -62,13 +65,33 @@ class CNN_NET(nn.Module):
             nn.Linear(128,2)
             # nn.Softmax()
         )
+        self.classfier_lyaky_Relu = nn.Sequential(
+            nn.Linear(576,256),
+            nn.LeakyReLU(),
+            nn.Linear(256,128),
+            nn.LeakyReLU(),
+            nn.Linear(128,2)
+            # nn.Softmax()
+        )
 
-
+    def _apply_activation(self, x):
+        if self.activation == 'relu':
+            return nn.ReLU()(x)
+        else:
+            return nn.LeakyReLU()(x)
+        
     def forward(self,x):
         x = self.conv1(x)
+        x = self._apply_activation(x)
         x = self.conv2(x)
+        x = self._apply_activation(x)
         x = self.conv3(x)
+        x = self._apply_activation(x)
         x = self.conv4(x)
-        x = self.classfier(x)
+        if self.activation == 'relu':
+            x = self.classfier_Relu(x)
+        else:
+            x = self.classfier_lyaky_Relu(x)
+        
         return x
 

@@ -8,28 +8,30 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import torchvision
 from load_data import data_load
 from torchvision import models
-# TO DO RESNET18
-# hyper do maina
-# Relu Leaky Relu
-# Imbalanced Data set
+
+#Sliding windows detection
+
 class Train:
-    def __init__(self, LR = 0.001,patience=5, TL="N") -> None:
+    def __init__(self,n_epochs = 20, lr = 0.001,patience=5, tl="N", activate='relu',imba='N') -> None:
 
         #--------- HYPER PARAMATERS---------
         print("Train Init")
-        self.n_epochs = 20
-        self.learning_rate = LR
-        #train_loader
+        self.n_epochs = n_epochs
+        self.learning_rate = lr
         self.patience = patience
+        self.TL = tl
+        self.activate = activate
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        
+
         self.epochs_without_improvement = 0
         self.best_validation_metric = 0
-        self.TL = TL
 
-        self.load_data()
+        self.load_data(imba)
 
 
-    def load_data(self):
+    def load_data(self, imba):
 
         if self.TL == 'N':
             #----------------ATM TRANFORM-------------
@@ -70,7 +72,7 @@ class Train:
             transforms.ToTensor(),   
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
-            self.data = data_load(self.transform, TL='Y')
+            self.data = data_load(self.transform, TL='Y', imba=imba)
 
         
 
@@ -81,7 +83,7 @@ class Train:
             model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
             model.fc = nn.Linear(model.fc.in_features, 2)
         else:
-            model = CNN_NET()
+            model = CNN_NET(activation=self.activate)
         model.to(self.device)
 
         if(optim == 'Adam'):
@@ -90,10 +92,9 @@ class Train:
             optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate, weight_decay=WD)
 
         criterion = nn.CrossEntropyLoss(weight=torch.tensor([1.0, 4.0]).to(device=self.device),  reduction='mean')
+
         n_correct = 0
         n_samples = 0
-
-
         for epoch in range(0, self.n_epochs):
             #train_loader
             for i, data in enumerate(self.data.train_loader):
@@ -146,8 +147,8 @@ class Train:
                 total_wall += (labels == 0).sum().item()  # wall class is labeled as 0
                 correct_face += ((predicted == 1) & (labels == 1)).sum().item()
                 correct_wall += ((predicted == 0) & (labels == 0)).sum().item()
-            print("correct face %d %%" % (100 * correct_face / total_face))
-            print("correct walls %d %%" % (100 * correct_wall / total_wall))
+            print("correct face %d / %d, %d %%" % (correct_face,total_face,100 * correct_face / total_face))
+            print("correct walls %d / %d, %d %%" % (correct_wall, total_wall,100 * correct_wall / total_wall))
 
             # correct face 732 / 797
             # correct walls 4415 / 6831

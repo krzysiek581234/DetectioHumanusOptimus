@@ -1,11 +1,10 @@
 import torch
 from net import Net
 from train import Train
-from train_TL import Train_TL
 import time
 def main():
     print('CUDA: ' + str(torch.cuda.is_available()))
-    trening = Train(TL='Y')
+    trening = Train(tl='N',n_epochs=3,imba='Y', lr=0.00005, activate='leakyrelu')
     model = trening.train()
     # TLtrain = Train_TL()
     # model = TLtrain.train()
