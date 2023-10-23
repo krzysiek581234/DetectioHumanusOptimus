@@ -71,3 +71,4 @@ class CNN_NET(nn.Module):
         x = self.conv4(x)
         x = self.classfier(x)
         return x
+
