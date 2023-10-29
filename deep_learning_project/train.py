@@ -12,7 +12,7 @@ from torchvision import models
 #Sliding windows detection
 
 class Train:
-    def __init__(self,n_epochs = 20, lr = 0.001,patience=5, tl="N", activate='relu',imba='N') -> None:
+    def __init__(self,n_epochs = 20, lr = 0.001,patience=5, tl="N", activate='relu',imba='N', optim='Adam') -> None:
 
         #--------- HYPER PARAMATERS---------
         print("Train Init")
@@ -22,8 +22,9 @@ class Train:
         self.TL = tl
         self.activate = activate
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-        
+        self.optim = optim
+        comment = f"lr={lr}, tl={tl}, activate={activate}, imba={imba}, optim{optim}"
+        self.writer = SummaryWriter(comment=comment)
 
         self.epochs_without_improvement = 0
         self.best_validation_metric = 0
@@ -76,7 +77,7 @@ class Train:
 
         
 
-    def train(self, optim='Adam', WD = 0.0,log='N'):
+    def train(self, WD = 0.0):
 
         print("Training")
         if self.TL == 'Y':
@@ -86,12 +87,13 @@ class Train:
             model = CNN_NET(activation=self.activate)
         model.to(self.device)
 
-        if(optim == 'Adam'):
+        if(self.optim == 'Adam'):
             optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=WD)
         else:
             optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate, weight_decay=WD)
 
-        criterion = nn.CrossEntropyLoss(weight=torch.tensor([1.0, 4.0]).to(device=self.device),  reduction='mean')
+        # criterion = nn.CrossEntropyLoss(weight=torch.tensor([1.0, 1.0]).to(device=self.device),  reduction='mean')
+        criterion = nn.CrossEntropyLoss()
 
         n_correct = 0
         n_samples = 0
@@ -118,15 +120,17 @@ class Train:
                 if(i+1) % 100 == 0:
                     print(f"epoch {epoch +1} / { self.n_epochs}, step {i+1}/{self.data.n_total}, loss: {loss}")
 
-            if self.best_validation_metric < self.validate(model):
+            if self.best_validation_metric < self.validate(model, epoch=epoch):
                 self.epochs_without_improvement =0
             else:
                 self.epochs_without_improvement += 1
                 if self.epochs_without_improvement > 5:
+                    self.writer.close()
                     return model
+        self.writer.close()
         return model
     
-    def validate(self, model):
+    def validate(self, model, epoch):
         with torch.no_grad():
             print('Validation: ')
             correct = 0
@@ -147,11 +151,22 @@ class Train:
                 total_wall += (labels == 0).sum().item()  # wall class is labeled as 0
                 correct_face += ((predicted == 1) & (labels == 1)).sum().item()
                 correct_wall += ((predicted == 0) & (labels == 0)).sum().item()
-            print("correct face %d / %d, %d %%" % (correct_face,total_face,100 * correct_face / total_face))
+
+            print("correct face %d / %d, %d %%" % (correct_face,total_face, 100 * correct_face / total_face))
             print("correct walls %d / %d, %d %%" % (correct_wall, total_wall,100 * correct_wall / total_wall))
+
+            self.writer.add_scalar('Face Accuracy', 100 * correct_face / total_face, epoch)
+            self.writer.add_scalar('No Face Accuracy', 100 * correct_wall / total_wall, epoch)
 
             # correct face 732 / 797
             # correct walls 4415 / 6831
+            acc = 100 * correct / total
 
-            print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
+            print('Accuracy of the network on the 10000 test images: %d %%' % acc)
+
+            self.writer.add_scalar('Total Accuracy', acc, epoch)
             return correct
+    def list_self_variables(self):
+        self_vars = {name: value for name, value in vars(self).items() if not name.startswith('__')}
+        for name, value in self_vars.items():
+            print(f"self.{name} = {value}")
