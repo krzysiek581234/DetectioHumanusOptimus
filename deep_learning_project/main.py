@@ -25,14 +25,13 @@ def main():
     #     print("-----------------------------")
     #     model = trening.train()
 
-    trening = Train(tl='N',n_epochs=20,imba='Y', lr=0.001, activate='leakyrelu', optim='Adam')
+    trening = Train(tl='N',n_epochs=10,imba='Y', lr=0.001, optim='Adam')
     print("-----------------------------")
     trening.list_self_variables()
     print("-----------------------------")
-    model = trening.train()
+    trening.train()
 
 
-    #torch.save(model1.state_dict(), 'CNN.pth')
     #tensorboard --logdir runs
 if __name__ == '__main__':
     start_time = time.time()
@@ -41,3 +40,5 @@ if __name__ == '__main__':
     end_time = time.time()
     execution_time = end_time - start_time
     print("Program execution time: %d seconds" % execution_time)
+
+

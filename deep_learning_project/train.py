@@ -8,11 +8,12 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import torchvision
 from load_data import data_load
 from torchvision import models
+import time
 
 #Sliding windows detection
 
 class Train:
-    def __init__(self,n_epochs = 20, lr = 0.001,patience=5, tl="N", activate='relu',imba='N', optim='Adam') -> None:
+    def __init__(self,n_epochs = 20, lr = 0.001,patience=20, tl="N", activate='relu',imba='N', optim='Adam') -> None:
 
         #--------- HYPER PARAMATERS---------
         print("Train Init")
@@ -23,8 +24,8 @@ class Train:
         self.activate = activate
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.optim = optim
-        comment = f"lr={lr}, tl={tl}, activate={activate}, imba={imba}, optim{optim}"
-        self.writer = SummaryWriter(comment=comment)
+        self.comment = f"lr={lr}, tl={tl}, activate={activate}, imba={imba}, optim{optim}"
+        self.writer = SummaryWriter(comment=self.comment)
 
         self.epochs_without_improvement = 0
         self.best_validation_metric = 0
@@ -55,7 +56,7 @@ class Train:
                 transforms.ToTensor(),   
                 transforms.Normalize(mean=(0.5,),std=(0.5,))]) #
             self.data = data_load(transform)
-        else:
+        elif self.TL=='Y':
             self.transform = torchvision.transforms.Compose(
             [
             torchvision.transforms.RandomPosterize(4, 0.1), #
@@ -74,7 +75,12 @@ class Train:
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
             self.data = data_load(self.transform, TL='Y', imba=imba)
-
+        else:
+            self.basetransform = transforms.Compose(
+                [transforms.Grayscale(),   # transforms to gray-scale (1 input channel)
+                transforms.ToTensor(),    # transforms to Torch tensor (needed for PyTorch)
+                transforms.Normalize(mean=(0.5,),std=(0.5,))]) # subtracts mean (0.5) and devides by standard deviation (0.5) -> resulting values in (-1, +1)
+            self.data = data_load(self.basetransform, TL='X', imba=imba)
         
 
     def train(self, WD = 0.0):
@@ -83,8 +89,10 @@ class Train:
         if self.TL == 'Y':
             model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
             model.fc = nn.Linear(model.fc.in_features, 2)
-        else:
+        elif self.TL == 'N':
             model = CNN_NET(activation=self.activate)
+        else:
+            model = Net()
         model.to(self.device)
 
         if(self.optim == 'Adam'):
@@ -92,12 +100,12 @@ class Train:
         else:
             optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate, weight_decay=WD)
 
-        # criterion = nn.CrossEntropyLoss(weight=torch.tensor([1.0, 1.0]).to(device=self.device),  reduction='mean')
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.CrossEntropyLoss(weight=torch.tensor([2.0, 1.0]).to(device=self.device),  reduction='mean')
+        #criterion = nn.CrossEntropyLoss()
 
         n_correct = 0
         n_samples = 0
-        for epoch in range(0, self.n_epochs):
+        for epoch in range(1, self.n_epochs+1):
             #train_loader
             for i, data in enumerate(self.data.train_loader):
                 images, labels = data
@@ -118,13 +126,19 @@ class Train:
                 n_correct += (predictions == labels).sum().item()
 
                 if(i+1) % 100 == 0:
-                    print(f"epoch {epoch +1} / { self.n_epochs}, step {i+1}/{self.data.n_total}, loss: {loss}")
-
-            if self.best_validation_metric < self.validate(model, epoch=epoch):
-                self.epochs_without_improvement =0
+                    print(f"epoch {epoch} / { self.n_epochs}, step {i+1}/{self.data.n_total}, loss: {loss}")
+            tempacc = self.validate(model, epoch=epoch)
+            if self.best_validation_metric < tempacc:
+                self.best_validation_metric = tempacc
+                print(f"SAVED {tempacc}")
+                file_name = f'CNN_{self.comment}.pth'
+                torch.save(model.state_dict(), file_name)
+                self.epochs_without_improvement = 0
             else:
                 self.epochs_without_improvement += 1
-                if self.epochs_without_improvement > 5:
+                print(f"Epoch without improvement {self.epochs_without_improvement}")
+                if self.epochs_without_improvement > self.patience:
+                    print(f"Exiting lack of improvement")
                     self.writer.close()
                     return model
         self.writer.close()

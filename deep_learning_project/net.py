@@ -65,14 +65,16 @@ class CNN_NET(nn.Module):
             nn.Linear(128,2)
             # nn.Softmax()
         )
-        self.classfier_lyaky_Relu = nn.Sequential(
-            nn.Linear(576,256),
-            nn.LeakyReLU(),
-            nn.Linear(256,128),
-            nn.LeakyReLU(),
-            nn.Linear(128,2)
-            # nn.Softmax()
-        )
+        #self.classfier_lyaky_Relu = nn.Sequential(
+        #    nn.Dropout(),
+        #    nn.Linear(576,256),
+        #    nn.LeakyReLU(),
+        #    nn.Dropout(),
+        #    nn.Linear(256,128),
+        #    nn.LeakyReLU(),
+        #    nn.Linear(128,2)
+        #    # nn.Softmax()
+        #)
 
     def _apply_activation(self, x):
         if self.activation == 'relu':
@@ -82,11 +84,11 @@ class CNN_NET(nn.Module):
         
     def forward(self,x):
         x = self.conv1(x)
-        x = self._apply_activation(x)
+        #x = self._apply_activation(x)
         x = self.conv2(x)
-        x = self._apply_activation(x)
+        #x = self._apply_activation(x)
         x = self.conv3(x)
-        x = self._apply_activation(x)
+        #x = self._apply_activation(x)
         x = self.conv4(x)
         if self.activation == 'relu':
             x = self.classfier_Relu(x)

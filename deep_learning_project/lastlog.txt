@@ -1,0 +1,94 @@
+(base) PS C:\Studia\Semestr5\AI\Projekt\deep_learning_project> C:/Users/krzys/anaconda3/Scripts/activate
+(base) PS C:\Studia\Semestr5\AI\Projekt\deep_learning_project> conda activate Erasmus_AI
+(Erasmus_AI) PS C:\Studia\Semestr5\AI\Projekt\deep_learning_project> & C:/Users/krzys/anaconda3/envs/Erasmus_AI/python.exe c:/Studia/Semestr5/AI/Projekt/deep_learning_project/main.py
+-----------START-----------
+CUDA: True
+Train Init
+Loading Data
+-----------------------------
+self.n_epochs = 10
+self.learning_rate = 0.001
+self.patience = 20
+self.TL = N
+self.activate = relu
+self.device = cuda
+self.optim = Adam
+self.comment = lr=0.001, tl=N, activate=relu, imba=Y, optimAdam
+self.writer = <tensorboardX.writer.SummaryWriter object at 0x000001D892EB9850>
+self.epochs_without_improvement = 0
+self.best_validation_metric = 0
+self.data = <load_data.data_load object at 0x000001D8A2165B50>
+-----------------------------
+Training
+epoch 1 / 10, step 100/287, loss: 0.1527658849954605
+epoch 1 / 10, step 200/287, loss: 0.0775107890367508
+Validation: 
+correct face 695 / 797, 87 %
+correct walls 4486 / 6831, 65 %
+Accuracy of the network on the 10000 test images: 67 %
+SAVED 5181
+epoch 2 / 10, step 100/287, loss: 0.07251166552305222
+epoch 2 / 10, step 200/287, loss: 0.0353236198425293
+Validation: 
+correct face 669 / 797, 83 %
+correct walls 4431 / 6831, 64 %
+Accuracy of the network on the 10000 test images: 66 %
+Epoch withput improvement 1
+epoch 3 / 10, step 100/287, loss: 0.042341213673353195
+epoch 3 / 10, step 200/287, loss: 0.051450811326503754
+Validation: 
+correct face 663 / 797, 83 %
+correct walls 5139 / 6831, 75 %
+Accuracy of the network on the 10000 test images: 76 %
+SAVED 5802
+epoch 4 / 10, step 100/287, loss: 0.04722136631608009
+epoch 4 / 10, step 200/287, loss: 0.05391598865389824
+Validation: 
+correct face 700 / 797, 87 %
+correct walls 4928 / 6831, 72 %
+Accuracy of the network on the 10000 test images: 73 %
+Epoch withput improvement 1
+epoch 5 / 10, step 100/287, loss: 0.02917344495654106
+epoch 5 / 10, step 200/287, loss: 0.04885454103350639
+Validation: 
+correct face 718 / 797, 90 %
+correct walls 4846 / 6831, 70 %
+Accuracy of the network on the 10000 test images: 72 %
+Epoch withput improvement 2
+epoch 6 / 10, step 100/287, loss: 0.038918763399124146
+epoch 6 / 10, step 200/287, loss: 0.04315377399325371
+Validation: 
+correct face 694 / 797, 87 %
+correct walls 5053 / 6831, 73 %
+Accuracy of the network on the 10000 test images: 75 %
+Epoch withput improvement 3
+epoch 7 / 10, step 100/287, loss: 0.029366042464971542
+epoch 7 / 10, step 200/287, loss: 0.03702562674880028
+Validation: 
+correct face 712 / 797, 89 %
+correct walls 4905 / 6831, 71 %
+Accuracy of the network on the 10000 test images: 73 %
+Epoch withput improvement 4
+epoch 8 / 10, step 100/287, loss: 0.045737702399492264
+epoch 8 / 10, step 200/287, loss: 0.02006596140563488
+Validation: 
+correct face 672 / 797, 84 %
+correct walls 5469 / 6831, 80 %
+Accuracy of the network on the 10000 test images: 80 %
+SAVED 6141
+epoch 9 / 10, step 100/287, loss: 0.03239871561527252
+epoch 9 / 10, step 200/287, loss: 0.02399580180644989
+Validation: 
+correct face 731 / 797, 91 %
+correct walls 4550 / 6831, 66 %
+Accuracy of the network on the 10000 test images: 69 %
+Epoch withput improvement 1
+epoch 10 / 10, step 100/287, loss: 0.017304399982094765
+epoch 10 / 10, step 200/287, loss: 0.025073595345020294
+Validation: 
+correct face 734 / 797, 92 %
+correct walls 4811 / 6831, 70 %
+Accuracy of the network on the 10000 test images: 72 %
+Epoch withput improvement 2
+Program execution time: 498 seconds
+(Erasmus_AI) PS C:\Studia\Semestr5\AI\Projekt\deep_learning_project> 

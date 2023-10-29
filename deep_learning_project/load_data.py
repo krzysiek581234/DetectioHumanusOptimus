@@ -20,12 +20,13 @@ class data_load():
                 [transforms.Grayscale(),   # transforms to gray-scale (1 input channel)
                 transforms.ToTensor(),    # transforms to Torch tensor (needed for PyTorch)
                 transforms.Normalize(mean=(0.5,),std=(0.5,))]) # subtracts mean (0.5) and devides by standard deviation (0.5) -> resulting values in (-1, +1)
-        else:
+        elif self.TL == 'Y':
             self.basetransform = transforms.Compose(
                 [
                 transforms.ToTensor(),    # transforms to Torch tensor (needed for PyTorch)
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]) # subtracts mean (0.5) and devides by standard deviation (0.5) -> resulting values in (-1, +1)
-
+        else:
+            self.basetransform = transform
         train_data = torchvision.datasets.ImageFolder(self.train_dir, transform=self.transform)
         test_data = torchvision.datasets.ImageFolder(self.test_dir, transform=self.basetransform)
 

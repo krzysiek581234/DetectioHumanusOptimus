@@ -15,10 +15,10 @@ from tkinter import filedialog
 
 def Sliding_Window():
     image = original_image
-    model = CNN_NET()
-    model.load_state_dict(torch.load('CNN.pth'))
+    model = CNN_NET(activation='relu')
+    model.load_state_dict(torch.load('CNN_lr=0.001, tl=N, activate=relu, imba=Y, optimAdam.pth'),strict=False)
     model.eval()
-    stride = 2  # Stride for moving the window
+    stride = 6  # Stride for moving the window
     # Initialize lists to store detected objects and their locations
     detected_objects = []
     object_locations = []
@@ -34,7 +34,7 @@ def Sliding_Window():
                         [transforms.Grayscale(),   # transforms to gray-scale (1 input channel)
                         transforms.ToTensor(),    # transforms to Torch tensor (needed for PyTorch)
                         transforms.Normalize(mean=(0.5,),std=(0.5,)),
-                        transforms.Resize((36, 36))
+                        transforms.Resize((36, 36,),antialias=None)
                         ]) # subtracts mean (0.5) and devides by standard deviation (0.5) -> resulting values in (-1, +1)
                 window = transform(window_pil).unsqueeze(0)
                 with torch.no_grad():
@@ -45,31 +45,11 @@ def Sliding_Window():
                     object_locations.append((x, y, x + window_size[0]/2, y + window_size[1]/2, window_size[0]))
     plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
-    new_object_locations = []  # Create a new list for updated object locations
-
-    for i, (x1, y1, xc1, yc1, window_size1) in enumerate(object_locations):
-        found_match = False  # Flag to check if an object was matched
-        for j, (x2, y2, xc2, yc2, window_size2) in enumerate(object_locations):
-            if i != j:  # Skip comparing an object with itself
-                distance_x = (xc1 - xc2)
-                distance_y = (yc1 - yc2)
-                distance = math.sqrt(distance_x**2 + distance_y**2)
-                if distance < abs(window_size1 - window_size2 - 6):
-                    new_x = (x1 + x2) / 2
-                    new_y = (y1 + y2) / 2
-                    new_window_size = window_size1 + window_size2 - 6
-                    new_object_locations.append((new_x, new_y, new_x + new_window_size/2, new_y + new_window_size/2, new_window_size))
-                    found_match = True
-
-        if not found_match:
-            # If no match was found, keep the object as is
-            new_object_locations.append((x1, y1, xc1, yc1, window_size1))
-
     # Update the object_locations with the new list
-    object_locations = new_object_locations
+    object_locations = combining_detections(object_locations)
 
     for (x1, y1, x2, y2,w) in object_locations:
-        rect = plt.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2, edgecolor=(0, 1, 0), facecolor="none")
+        rect = plt.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor=(0, 1, 0), facecolor="none")
         plt.gca().add_patch(rect)
     plt.title("Detected Objects")
     plt.show()
@@ -77,8 +57,27 @@ def Sliding_Window():
         
 
 
+def combining_detections(object_locations):
+    # combining multiple photos to one
+    new_object_locations = []  # Create a new list for updated object locations
+    for i, (x1, y1, xc1, yc1, window_size1) in enumerate(object_locations):
+        found_match = False  # Flag to check if an object was matched
+        for j, (x2, y2, xc2, yc2, window_size2) in enumerate(object_locations):
+            if i != j:  # Skip comparing an object with itself
+                distance_x = (xc1 - xc2)
+                distance_y = (yc1 - yc2)
+                distance = math.sqrt(distance_x**2 + distance_y**2)
+                if distance < abs(window_size1 - window_size2 + 30):
+                    new_x = (x1 + x2) / 2
+                    new_y = (y1 + y2) / 2
+                    new_window_size = max(window_size1, window_size2) + abs(distance)
+                    new_object_locations.append((new_x, new_y, new_x + new_window_size/2, new_y + new_window_size/2, new_window_size))
+                    found_match = True
 
-
+        if not found_match:
+            # If no match was found, keep the object as is
+            new_object_locations.append((x1, y1, xc1, yc1, window_size1))
+    return new_object_locations
 
 def choose_image():
     global selected_image, original_image
@@ -109,7 +108,7 @@ def choose_image():
 
 if __name__ == '__main__':
     window = tk.Tk()
-    window.title("Emotion Detection")
+    window.title("Face Detection")
 
     window.geometry("960x540")
     window.resizable(True, True)
