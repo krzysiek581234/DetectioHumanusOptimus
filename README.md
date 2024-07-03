@@ -1,4 +1,3 @@
-"# DetectioHumanusOptimus" 
 # Convolutional Neural Networks in Classification of Faces
 
 ## Table of Contents
